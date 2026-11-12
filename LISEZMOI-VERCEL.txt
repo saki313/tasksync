@@ -1,0 +1,264 @@
+════════════════════════════════════════════════════════
+  TaskSync — Hébergement gratuit sur Vercel
+  Accessible partout : téléphone, PC, données mobiles
+════════════════════════════════════════════════════════
+
+Après ce guide, votre application TaskSync sera accessible
+depuis N'IMPORTE QUEL appareil via une adresse du type :
+
+    https://tasksync.vercel.app
+
+Téléphone (4G/5G/Wi-Fi), PC Windows, PC Ubuntu... toutes
+vos tâches sont synchronisées en temps réel via un compte
+Google. Plus besoin que votre PC reste allumé : c'est
+Vercel qui héberge l'application 24 h/24.
+
+
+── CE QU'IL FAUT SAVOIR AVANT DE COMMENCER ──────────────
+
+Coût : 0 € (offert par trois services gratuits)
+
+  • Vercel    : héberge l'application (plan Hobby gratuit)
+  • Neon      : base de données en ligne (plan gratuit,
+                suffisant pour des dizaines de milliers
+                de tâches)
+  • Google    : connexion avec votre compte (gratuit)
+
+Important : la base locale SQLite de la version Windows ne
+fonctionne pas sur Vercel (serveur éphémère). Ce paquet
+utilise donc PostgreSQL chez Neon — vos données seront
+stockées en ligne, c'est justement ce qui permet la sync.
+Vos données locales de test ne sont pas transférées ;
+vous repartez de zéro sur le cloud (les 4 listes par
+défaut sont créées automatiquement).
+
+Durée totale : environ 20 à 30 minutes.
+
+
+── ÉTAPE 0. PRÉPARATION ─────────────────────────────────
+
+  1. Décompressez le dossier « TaskSync-Vercel » où vous
+     voulez (par exemple dans Documents)
+  2. Node.js doit être installé (même installation que la
+     version Windows : https://nodejs.org, version LTS)
+  3. Astuce pour ouvrir un terminal dans le dossier :
+     ouvrez le dossier TaskSync-Vercel dans l'Explorateur,
+     cliquez dans la barre d'adresse en haut, tapez  cmd
+     puis Entrée. Une fenêtre noire s'ouvre au bon endroit.
+     (Les fichiers .bat ci-dessous peuvent aussi être
+     lancés par double-clic.)
+
+     IMPORTANT — Windows PowerShell :
+     n'exécutez JAMAIS ces scripts en collant leur contenu
+     dans une fenêtre PowerShell (fond bleu). PowerShell
+     n'est pas l'invite de commandes et ne comprend pas la
+     syntaxe des fichiers .bat : vous verriez des erreurs
+     « Jeton inattendu ». Double-cliquez simplement sur le
+     fichier .bat, ou utilisez la fenêtre cmd (fond noir)
+     décrite ci-dessus.
+
+
+── ÉTAPE 1. CRÉER LA BASE DE DONNÉES (Neon) ─────────────
+
+  1. Allez sur  https://neon.tech  → « Sign Up »
+     (connexion possible avec votre compte Google)
+  2. Après l'inscription, cliquez « Create project »
+     Nom du projet : tasksync   → « Create »
+  3. Neon affiche une « Connection string » qui commence
+     par  postgresql://  et finit par  ?sslmode=require
+     → Cliquez sur le bouton « Copy » pour la copier,
+       puis gardez-la de côté (bloc-notes par exemple)
+
+
+── ÉTAPE 2. CRÉER LES TABLES (initier-base.bat) ─────────
+
+  1. Double-cliquez sur  initier-base.bat
+     (il installe d'abord les dépendances : 2 à 5 minutes)
+  2. Quand il demande « Chaine Neon : », faites un clic
+     droit dans la fenêtre pour coller votre connection
+     string, puis Entrée
+  3. Attendez « Base de donnees prete ! »
+
+Vos tables sont maintenant créées sur Neon.
+
+
+── ÉTAPE 3. CRÉER UN COMPTE VERCEL ──────────────────────
+
+  1. Allez sur  https://vercel.com  → « Sign Up »
+  2. Choisissez « Continue with Email » (ou GitHub)
+  3. Validez votre adresse email (lien reçu par email)
+
+Pas de carte bancaire demandée : le plan Hobby est gratuit
+pour un usage personnel.
+
+
+── ÉTAPE 4. DÉPLOYER SUR VERCEL (deployer-vercel.bat) ───
+
+  1. Double-cliquez sur  deployer-vercel.bat
+     (il installe l'outil vercel la première fois)
+  2. Un navigateur peut s'ouvrir pour la connexion :
+     connectez-vous avec le compte créé à l'étape 3
+  3. Revenez dans la fenêtre noire et répondez aux
+     questions (Entrée = oui) :
+       « Set up and deploy ... ? »           → Entrée
+       « Which scope do you want to use ? »  → Entrée
+       « Link to existing project ? »        → N puis Entrée
+       « What's your project's name ? »      → tasksync
+                                               puis Entrée
+       « In which directory is your code ? » → Entrée
+       « Want to modify these settings ? »   → Entrée (Non)
+  4. Le déploiement dure 2 à 4 minutes. À la fin, Vercel
+     affiche votre adresse : gardez-la précieusement, par
+     exemple  https://tasksync-xxxxx.vercel.app
+
+
+── ÉTAPE 5. LES VARIABLES SECRÈTES (obligatoire) ────────
+
+L'application est en ligne mais pas encore branchée à la
+base et aux secrets. On ajoute les variables :
+
+  1. Allez sur  https://vercel.com  et ouvrez votre
+     projet « tasksync »
+  2. Onglet « Settings » → « Environment Variables »
+  3. Ajoutez ces 3 variables (une par une) :
+
+     ┌ Nom             ┌ Valeur
+     │ DATABASE_URL    │ votre connection string Neon
+     │                 │ (postgresql://...sslmode=require)
+     │ NEXTAUTH_URL    │ votre adresse Vercel complète
+     │                 │ (ex : https://tasksync-xxxxx.vercel.app
+     │                 │  SANS / à la fin)
+     │ NEXTAUTH_SECRET │ 3824f91e198970718441785d3fe8eb755f111471fee357b6
+
+     Pour chaque variable : collez le nom, collez la
+     valeur, cochez tous les environnements proposés,
+     cliquez « Save ».
+
+  4. Une fois les 3 variables enregistrées :
+     onglet « Deployments » → survolez le déploiement du
+     haut → bouton « ⋯ » → « Redeploy » → « Redeploy »
+  5. Attendez 2 minutes, puis ouvrez votre adresse
+     https://tasksync-xxxxx.vercel.app
+     → L'écran de connexion TaskSync apparaît (le bouton
+     Google devient actif à l'étape 6).
+
+En cas d'oubli du secret, un nouveau peut être généré sur
+https://generate-secret.vercel.app/32 (remplacez alors la
+valeur de NEXTAUTH_SECRET puis Redeploy).
+
+
+── ÉTAPE 6. CONNEXION GOOGLE (obligatoire) ──────────────
+
+C'est elle qui permet d'avoir les mêmes tâches partout —
+et depuis la version finale, c'est le SEUL moyen de se
+connecter : suivez cette étape impérativement.
+
+  1. Allez sur  https://console.cloud.google.com
+     (connectez-vous avec votre compte Google)
+  2. En haut, créez un projet : « Select project » →
+     « NEW PROJECT » → nom : tasksync → « Create »
+  3. Menu « API et services » → « Écran de consentement
+     OAuth » → type « Externe » → « Créer »
+     Remplissez : nom de l'app : TaskSync ; email : le
+     vôtre ; laissez le reste par défaut → « Enregistrer »
+  4. Menu « Identifiants » → « Créer des identifiants » →
+     « ID client OAuth » → type « Application Web »
+  5. Dans « URI de redirection autorisés », ajoutez
+     EXACTEMENT (remplacez par VOTRE adresse Vercel) :
+
+       https://tasksync-xxxxx.vercel.app/api/auth/callback/google
+
+  6. Cliquez « Créer » : une fenêtre affiche l'« ID
+     client » et la « Clé secrète client » → copiez-les
+  7. Retournez sur Vercel → Settings → Environment
+     Variables → ajoutez :
+
+     ┌ Nom                  ┌ Valeur
+     │ GOOGLE_CLIENT_ID     │ l'ID client (finissant par
+     │                      │ .apps.googleusercontent.com)
+     │ GOOGLE_CLIENT_SECRET │ la clé secrète
+
+  8. Redeploy (même manipulation qu'à l'étape 5.4)
+  9. Ouvrez votre application : le bouton « Continuer avec
+     Google » est apparu → connectez-vous !
+
+
+── ÉTAPE 7. INSTALLER SUR TOUS VOS APPAREILS ────────────
+
+Sur CHAQUE appareil, ouvrez votre adresse Vercel puis :
+
+  • Android (Chrome)  : bouton « Installer l'appli »
+    (ou menu ⋮ → « Installer l'application »)
+  • iPhone (Safari)   : bouton Partager →
+    « Sur l'écran d'accueil »
+  • Windows (Edge/Chrome) : bouton « Installer l'appli »
+    dans l'en-tête de TaskSync
+  • Ubuntu (Chrome/Chromium) : menu ⋮ → « Installer
+    TaskSync »
+
+Connectez-vous AVEC LE MÊME COMPTE GOOGLE partout :
+vos tâches s'affichent identiques en quelques secondes
+(synchronisation automatique toutes les 4 secondes et à
+chaque retour dans l'application).
+
+À partir de là, utilisez l'adresse Vercel sur tous vos
+appareils — y compris votre PC Windows — : la version
+locale (demarrer.bat) devient inutile, vous pouvez garder
+le dossier en secours.
+
+
+── ÉTAPE 8. METTRE À JOUR L'APPLICATION PLUS TARD ───────
+
+Si le code est modifié, pour publier la nouvelle version :
+ouvrez un terminal dans le dossier TaskSync-Vercel (voir
+étape 0) et tapez :
+
+    vercel --prod
+
+(2 à 4 minutes ; vos données ne sont pas touchées.)
+
+
+── PROBLÈMES FRÉQUENTS ──────────────────────────────────
+
+« ... était inattendu. » au lancement d'un script .bat
+  → Vous avez collé le contenu du script dans une fenêtre
+    PowerShell : ne collez jamais le script, exécutez le
+    fichier par double-clic. Si l'erreur persiste même en
+    double-cliquant, votre paquet date d'avant la correction
+    : retéléchargez TaskSync-Vercel.zip (les parenthèses des
+    messages du script ont été corrigées).
+
+« 'vercel' n'est pas reconnu »
+  → Fermez la fenêtre noire, ouvrez-en une nouvelle
+    (taper cmd dans la barre d'adresse) et réessayez.
+
+Le déploiement échoue avec une erreur de build
+  → Relancez deployer-vercel.bat (souvent temporaire).
+
+« 500 » ou erreur à l'ouverture de l'application
+  → Vérifiez les 3 variables de l'étape 5 (attention :
+    NEXTAUTH_URL sans / final) puis Redeploy.
+
+Erreur « OAuthCallbackError » à la connexion Google
+  → L'URI de redirection dans Google Cloud doit être
+    EXACTEMENT votre-adresse/api/auth/callback/google
+    (sans espace, https, sans / final après /google).
+
+La connexion Google boucle sans se connecter
+  → NEXTAUTH_URL doit correspondre EXACTEMENT à l'adresse
+    affichée dans le navigateur (sans / final), puis
+    Redeploy.
+
+« Error validating datasource » au lancement de
+ initier-base.bat
+  → La connection string Neon doit commencer par
+    postgresql:// et finir par ?sslmode=require.
+
+Vos données
+  → Stockées chez Neon (plan gratuit : 0,5 Go, soit des
+    dizaines de milliers de tâches). Sauvegarde possible
+    depuis neon.tech (onglet « Backup & Restore »).
+
+────────────────────────────────────────────────────────
+Bonne organisation avec TaskSync, partout, tout le temps !
+────────────────────────────────────────────────────────

@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  provider  String   @default("demo")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  lists     List[]
+  tasks     Task[]
+}
+
+model List {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#10b981")
+  icon      String   @default("list")
+  order     Int      @default(0)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  notes       String?
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  priority    Int       @default(1)
+  dueDate     DateTime?
+  starred     Boolean   @default(false)
+  listId      String?
+  list        List?     @relation(fields: [listId], references: [id], onDelete: SetNull)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
