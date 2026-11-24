@@ -16,17 +16,17 @@ echo ==================================================
 echo.
 echo 1. Connectez-vous sur  https://neon.tech
 echo 2. Ouvrez votre projet, bouton "Connection Details"
-echo 3. Copiez la chaine qui commence par  postgresql://
-echo 4. Collez-la ci-dessous - clic droit dans cette fenetre
+echo 3. Copiez la chaine POOLEE (avec -pooler) puis la chaine DIRECTE
+echo 4. Collez-les ci-dessous - clic droit dans cette fenetre
 echo.
-set /p DBURL="Chaine Neon : "
-if not defined DBURL (
-    echo Aucune chaine saisie. Operation annulee.
-    pause
-    exit /b 1
-)
+set /p DBURL="Chaine Neon poolée (-pooler) : "
+set /p DBURL_UNPOOLED="Chaine Neon directe (sans -pooler) : "
+if not defined DBURL goto :nourl
+if not defined DBURL_UNPOOLED goto :nourl
 if /i not "%DBURL:~0,13%"=="postgresql://" goto :badurl
+if /i not "%DBURL_UNPOOLED:~0,13%"=="postgresql://" goto :badurl
 set "DATABASE_URL=%DBURL%"
+set "DATABASE_URL_UNPOOLED=%DBURL_UNPOOLED%"
 echo.
 echo Creation des tables...
 call npx prisma db push
@@ -36,9 +36,9 @@ echo.
 echo ==================================================
 echo    Base de donnees prete !
 echo.
-echo    Gardez precieusement la chaine de connexion :
-echo    elle servira sur Vercel - variable DATABASE_URL
-echo    etape 5 du LISEZMOI-VERCEL.txt
+echo    Gardez precieusement les deux chaines de connexion :
+echo    elles servent sur Vercel - DATABASE_URL et
+echo    DATABASE_URL_UNPOOLED (voir LISEZMOI-VERCEL.txt)
 echo.
 echo    Prochaine etape : deployer-vercel.bat
 echo ==================================================
@@ -46,11 +46,18 @@ echo.
 pause
 exit /b 0
 
+:nourl
+echo.
+echo [ERREUR] Les deux chaines Neon sont obligatoires.
+echo          Operation annulee.
+pause
+exit /b 1
+
 :badurl
 echo.
-echo [ERREUR] La chaine saisie ne commence pas par postgresql://
-echo          Copiez-la depuis Neon - bouton "Connection Details" -
-echo          puis relancez initier-base.bat.
+echo [ERREUR] Une chaine ne commence pas par postgresql://
+echo          Copiez les deux chaines depuis Neon - bouton
+echo          "Connection Details" - puis relancez initier-base.bat.
 pause
 exit /b 1
 
