@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")            // Neon, connexion poolée (application)
+  directUrl = env("DATABASE_URL_UNPOOLED")    // Neon, connexion directe (CLI Prisma)
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  image        String?
+  provider     String   @default("demo")
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  lists        List[]
+  tasks        Task[]
+  phases       Phase[]
+  changes      Change[]
+}
+
+model List {
+  id        String   @id @default(cuid())
+  name      String
+  color     String   @default("#10b981")
+  icon      String   @default("list")
+  order     Int      @default(0)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  notes       String?
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  priority    Int       @default(1)
+  dueDate     DateTime?
+  starred     Boolean   @default(false)
+  listId      String?
+  list        List?     @relation(fields: [listId], references: [id], onDelete: SetNull)
+  phaseId     String?
+  phase       Phase?    @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  version     Int       @default(1)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+// Phase : entité indépendante des listes, propriété du même utilisateur.
+// L'ordre est géré par `position` ; la progression est calculée à partir
+// des tâches liées (phaseId), jamais stockée.
+model Phase {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  position    Int      @default(0)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Journal de synchronisation : chaque mutation est enregistrée avec un
+// identifiant auto-incrémenté (curseur), l'utilisateur propriétaire et,
+// pour l'idempotence, le mutationId généré par le client.
+// `payload` contient l'état complet de l'entité après application (JSON).
+model Change {
+  id         Int      @id @default(autoincrement())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entityType String
+  entityId   String
+  op         String
+  payload    String?
+  mutationId String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId, id])
+  @@index([userId, mutationId])
+}

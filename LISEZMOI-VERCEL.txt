@@ -1,0 +1,113 @@
+============================================================
+  TaskSync — Déploiement Neon + Vercel
+============================================================
+
+Le projet est désormais configuré pour PostgreSQL (Neon) :
+  - prisma/schema.prisma  -> provider "postgresql"
+  - DATABASE_URL          -> connexion poolée (application)
+  - DATABASE_URL_UNPOOLED -> connexion directe (CLI Prisma)
+  - postinstall           -> prisma generate automatique sur Vercel
+  - NEXTAUTH_SECRET       -> obligatoire en production (plus de secret en dur)
+
+
+── 1. Renseigner les variables localement ───────────────────
+
+  cp .env.example .env
+
+Remplacez dans .env :
+  DATABASE_URL          par la chaîne Neon contenant "-pooler"
+  DATABASE_URL_UNPOOLED par la chaîne Neon sans "-pooler"
+  NEXTAUTH_SECRET       par le résultat de : openssl rand -base64 32
+  NEXTAUTH_URL          par http://localhost:3000 en local
+
+Important : le projet n'utilise plus prisma/dev.db. Le développement
+local pointe désormais vers Neon (ou un PostgreSQL local).
+
+
+── 2. Appliquer le schéma sur Neon SANS perdre vos données ──
+
+Attention : ne jamais lancer "npm run db:push:danger" contre Neon.
+
+Cas A — les tables existent déjà sur Neon et correspondent au schéma :
+
+  mkdir -p prisma/migrations/20261124000000_init
+
+  npx prisma migrate diff \
+    --from-empty \
+    --to-schema-datamodel prisma/schema.prisma \
+    --script > prisma/migrations/20261124000000_init/migration.sql
+
+  npx prisma migrate resolve --applied 20261124000000_init
+  npx prisma migrate deploy
+  npx prisma generate
+
+Cas B — la base Neon est vide :
+
+  npx prisma migrate dev --name init
+  npx prisma generate
+
+Cas C — les tables existent mais diffèrent du schéma :
+  créez une branche Neon de sauvegarde, générez le SQL de différence,
+  lisez-le, puis seulement appliquez la migration.
+
+
+── 3. Google OAuth ───────────────────────────────────────────
+
+Google Cloud Console -> API et services -> Identifiants ->
+ID client OAuth (Application Web).
+
+URI de redirection autorisés :
+  http://localhost:3000/api/auth/callback/google
+  https://<votre-projet>.vercel.app/api/auth/callback/google
+  https://<votre-domaine>/api/auth/callback/google
+
+Origines JavaScript autorisées :
+  http://localhost:3000
+  https://<votre-projet>.vercel.app
+
+
+── 4. Variables d'environnement sur Vercel ───────────────────
+
+Projet Vercel -> Settings -> Environment Variables.
+Ajoutez (Production, et Preview si besoin) :
+
+  DATABASE_URL          = chaîne Neon poolée (-pooler)
+  DATABASE_URL_UNPOOLED = chaîne Neon directe
+  NEXTAUTH_SECRET       = openssl rand -base64 32
+  NEXTAUTH_URL          = https://<votre-projet>.vercel.app
+  GOOGLE_CLIENT_ID      = ID client Google
+  GOOGLE_CLIENT_SECRET  = secret client Google
+
+Laissez "Enable access to System Environment Variables" activé.
+
+
+── 5. Déploiement ────────────────────────────────────────────
+
+  git init
+  git add .
+  git commit -m "Configuration Neon + Vercel"
+  git remote add origin https://github.com/saki313/tasksync.git
+  git push -u origin main
+
+Sur Vercel : Add New -> Project -> importer le dépôt,
+framework Next.js détecté automatiquement, build command par défaut
+(npm run build). Le postinstall génère le client Prisma.
+
+
+── 6. Vérification ───────────────────────────────────────────
+
+  - inscription e-mail / mot de passe
+  - connexion démo (demo@tasksync.app / demo1234)
+  - connexion Google
+  - création d'une tâche puis rechargement
+  - contrôle des données dans le SQL Editor Neon
+
+
+── Dépannage ─────────────────────────────────────────────────
+
+  P1001 / timeout ............ utiliser l'URL poolée + sslmode=require
+  prepared statement s0 ...... migration lancée via le pooler : utiliser
+                               DATABASE_URL_UNPOOLED pour la CLI
+  redirect_uri_mismatch ...... callback exact dans Google + NEXTAUTH_URL
+  500 sur /api/auth/* ........ NEXTAUTH_SECRET absent sur Vercel
+  build Prisma cassé ......... vérifier postinstall + prisma generate

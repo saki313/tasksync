@@ -1,0 +1,30 @@
+# Dépendances et builds
+node_modules/
+.next/
+out/
+dist/
+
+# Secrets et configuration locale
+.env
+.env.local
+.env.*.local
+
+# Données locales SQLite (historique, non versionnées)
+prisma/dev.db
+prisma/dev.db-journal
+
+# Logs
+*.log
+npm-debug.log*
+dev.log
+server.log
+
+# Système
+.DS_Store
+Thumbs.db
+.agent-cache/
+
+# Tests
+playwright-report/
+test-results/
+coverage/

@@ -1,0 +1,278 @@
+════════════════════════════════════════════════════════
+  TaskSync — Application de gestion de tâches
+  Guide d'installation et d'utilisation sur Ubuntu / Linux
+════════════════════════════════════════════════════════
+
+TaskSync est votre application de gestion de tâches,
+installable sur votre téléphone, Windows et Ubuntu, avec
+toutes vos tâches synchronisées entre vos appareils.
+
+
+── 1. PRÉREQUIS (une seule fois) ────────────────────────
+
+Installer Node.js 20 LTS (méthode la plus simple) :
+  1. Ouvrez un terminal (Ctrl+Alt+T)
+  2. Copiez-collez ces deux commandes (Entrée après
+     chacune, mot de passe demandé pour la 1re) :
+
+     curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+     sudo apt-get install -y nodejs
+
+  3. Vérifiez avec :  node -v   (doit afficher v20.x)
+
+Alternative sans commande : certains dépôts Ubuntu proposent
+« nodejs » mais souvent trop ancien — préférez la méthode
+ci-dessus ou le site https://nodejs.org.
+
+Vérifiez aussi que « curl » est présent (il l'est en
+général) :  sudo apt-get install -y curl
+
+
+── 2. INSTALLATION DE TASKSYNC (une seule fois) ─────────
+
+  1. Décompressez le dossier « TaskSync » où vous voulez
+     (par exemple dans Documents)
+  2. Ouvrez ce dossier dans le gestionnaire de fichiers,
+     puis clic droit dans un espace vide →
+     « Ouvrir dans un terminal »
+     (ou : ouvrez un terminal et tapez
+      cd ~/Documents/TaskSync — adaptez le chemin)
+  3. Rendez les scripts exécutables puis lancez
+     l'installation :
+
+     chmod +x *.sh
+     ./install.sh
+
+  4. Attendez la fin (2 à 5 minutes) : le message
+     « Installation terminée avec succès ! » s'affiche
+
+C'est tout ! TaskSync est installé sur votre PC.
+
+IMPORTANT : n'utilisez pas « sudo » avec install.sh —
+tout s'installe dans votre dossier personnel.
+
+
+── 3. UTILISATION QUOTIDIENNE ───────────────────────────
+
+  • Dans le dossier TaskSync, lancez :  ./demarrer.sh
+  • Votre navigateur s'ouvre automatiquement sur
+    http://localhost:3000
+  • Connectez-vous avec votre compte Google (la
+    section 5 explique comment activer la connexion)
+  • Pour l'installer comme application : menu ⋮ de
+    Chrome/Chromium → « Installer TaskSync » — elle
+    obtient sa propre fenêtre et son icône dans le menu
+    des applications
+  • Pour arrêter : fermez le terminal ou Ctrl+C
+
+IMPORTANT : laissez le terminal ouvert tant que vous
+utilisez l'application.
+
+
+── 4. ACCÉDER DEPUIS VOTRE TÉLÉPHONE (même Wi-Fi) ───────
+
+Vous pouvez consulter vos tâches depuis votre téléphone
+tant que votre PC est allumé :
+
+  1. Lancez demarrer.sh sur le PC
+  2. Sur le PC, notez l'adresse IP de la machine :
+
+     hostname -I
+
+     (la 1re adresse, par exemple 192.168.1.42)
+  3. Sur votre téléphone (même Wi-Fi), ouvrez le
+     navigateur et allez sur  http://192.168.1.42:3000
+     (remplacez par VOTRE adresse)
+  4. Android : menu ⋮ → « Ajouter à l'écran d'accueil »
+     iPhone : bouton Partager → « Sur l'écran d'accueil »
+
+Si rien ne charge et qu'un pare-feu est actif :
+  sudo ufw allow 3000/tcp
+
+Pour une synchronisation permanente entre tous vos
+appareils (partout, même hors Wi-Fi), le plus simple est
+d'héberger l'application gratuitement sur Vercel :
+utilisez le paquet « TaskSync-Vercel » et son guide
+LISEZMOI-VERCEL.txt.
+
+
+── 5. CONNEXION AVEC GOOGLE (obligatoire) ───────────────
+
+TaskSync se connecte uniquement avec un compte Google
+(indispensable pour la synchronisation entre appareils).
+Configurez vos clés une seule fois :
+
+  1. Allez sur  https://console.cloud.google.com
+  2. Créez un projet (ou utilisez-en un existant)
+  3. Menu « API et services » → « Identifiants »
+     → « Créer des identifiants » → « ID client OAuth »
+     Type : « Application Web »
+  4. Dans « URI de redirection autorisés », ajoutez :
+     http://localhost:3000/api/auth/callback/google
+  5. Copiez l'« ID client » et la « Clé secrète client »
+  6. Ouvrez le fichier .env du dossier TaskSync :
+
+     gedit .env
+
+     Décommentez les 2 dernières lignes (enlevez le #)
+     et collez vos valeurs :
+       GOOGLE_CLIENT_ID=...
+       GOOGLE_CLIENT_SECRET=...
+     Enregistrez le fichier
+  7. Relancez demarrer.sh : le bouton « Continuer avec
+     Google » apparaît
+
+Sur chaque appareil, connectez-vous avec LE MÊME compte
+Google : vos tâches sont alors identiques partout.
+
+
+── 6. RACCOURCI DANS LE MENU DES APPLICATIONS (optionnel) ─
+
+  1. Ouvrez le fichier TaskSync.desktop :
+
+     gedit TaskSync.desktop
+
+     et remplacez /home/VOTRE_NOM/TaskSync/demarrer.sh
+     par le vrai chemin de votre dossier
+  2. Installez le raccourci :
+
+     mkdir -p ~/.local/share/applications
+     cp TaskSync.desktop ~/.local/share/applications/
+
+  3. « TaskSync » apparaît dans le menu des applications
+     (raccourci touche Super, tapez tasksync)
+
+Astuce bureau : copiez aussi le fichier .desktop sur
+votre Bureau (Ubuntu : clic droit → « Allow Launching »).
+
+
+── 7. VOS DONNÉES ET SAUVEGARDE ─────────────────────────
+
+Vos tâches sont stockées dans le fichier :
+  TaskSync/prisma/dev.db
+
+Pour sauvegarder : copiez ce fichier ailleurs (clé USB,
+Nextcloud...). Pour restaurer : remettez-le à la même
+place (application fermée).
+
+Pour repartir de zéro : fermez l'application, supprimez
+prisma/dev.db, puis relancez install.sh.
+
+
+── 8. PROBLÈMES FRÉQUENTS ───────────────────────────────
+
+Le bouton « Continuer avec Google » n'apparaît pas
+  → Les clés GOOGLE_CLIENT_ID et GOOGLE_CLIENT_SECRET ne
+    sont pas configurées dans le fichier .env (section 5).
+
+« Permission denied » en lançant un script
+  → chmod +x *.sh   puis relancez.
+
+« command not found : node » ou « nodejs »
+  → Node.js n'est pas installé ou pas dans le PATH :
+    suivez la section 1 puis rouvrez le terminal.
+
+« EACCES » ou erreurs de droits pendant npm install
+  → Ne lancez JAMAIS install.sh avec sudo ; vérifiez que
+    le dossier TaskSync est bien chez vous
+    (ls -ld ~ ; ls -ld .).
+
+Le port 3000 est déjà utilisé
+  → Lancez plutôt :  PORT=3001 ./demarrer.sh
+    (l'adresse devient http://localhost:3001)
+
+La page ne s'ouvre pas / erreur dans le navigateur
+  → Vérifiez que le terminal est encore ouvert, attendez
+    10 secondes puis actualisez la page (F5).
+
+« Error validating datasource » ou erreur de base
+  → Fermez l'application, supprimez prisma/dev.db puis
+    relancez install.sh.
+
+« Error: NEXTAUTH_SECRET » ou connexion impossible
+  → Le fichier .env est absent ou modifié : relancez
+    install.sh (il le recrée) ou remettez les 3 lignes
+    DATABASE_URL, NEXTAUTH_SECRET, NEXTAUTH_URL.
+
+Après une mise à jour du code
+  → Supprimez le dossier .next puis relancez install.sh.
+
+────────────────────────────────────────────────────────
+Bonne organisation avec TaskSync !
+────────────────────────────────────────────────────────
+
+=========================================================
+NOUVEAU - SPRINT 1 (hors connexion, phases, sync auto)
+=========================================================
+
+COMPTE DE DEMONSTRATION (sans Google)
+  E-mail       : demo@tasksync.app
+  Mot de passe : demo1234
+  Ce compte est cree automatiquement a la premiere connexion.
+  La connexion Google reste disponible si les cles
+  GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET sont configurees.
+
+MODE HORS CONNEXION (Offline-First)
+  - Apres un premier chargement, l'application s'ouvre et
+    fonctionne sans Internet : PWA + stockage local IndexedDB.
+  - Creer, modifier, terminer, supprimer des taches et des
+    phases marche hors connexion ; rien n'est perdu apres
+    fermeture et reouverture.
+  - Un indicateur en haut de l'ecran affiche l'etat :
+    en ligne / hors ligne / synchronisation / modifications
+    en attente / synchronise / erreur.
+
+PHASES (nouvelle vue "Phases")
+  - Creez des etapes independantes des listes, ajoutez-y des
+    taches (menu ou quick-add de la carte), deplacez les taches
+    entre phases, reordonnez les phases avec les fleches.
+  - Chaque phase affiche sa progression (x/y, pourcentage et
+    barre), recalculee automatiquement - y compris hors ligne.
+  - Supprimer une phase conserve ses taches (elles passent
+    "sans phase").
+
+SYNCHRONISATION AUTOMATIQUE MULTI-APPAREILS
+  - Au demarrage, au retour du reseau, au retour sur l'app et
+    regulierement sinon.
+  - Aucun doublon (mutations identifiees), conflits resolus au
+    plus recent, notification en cas de conflit.
+  - A la deconnexion, l'app vous previent s'il reste des
+    modifications en attente avant d'effacer les donnees locales.
+
+=========================================================
+NOUVEAU - SPRINT 1 (hors connexion, phases, sync auto)
+=========================================================
+
+COMPTE DE DEMONSTRATION (sans Google)
+  E-mail       : demo@tasksync.app
+  Mot de passe : demo1234
+  Ce compte est cree automatiquement a la premiere connexion.
+  La connexion Google reste disponible si les cles
+  GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET sont configurees.
+
+MODE HORS CONNEXION (Offline-First)
+  - Apres un premier chargement, l'application s'ouvre et
+    fonctionne sans Internet : PWA + stockage local IndexedDB.
+  - Creer, modifier, terminer, supprimer des taches et des
+    phases marche hors connexion ; rien n'est perdu apres
+    fermeture et reouverture.
+  - Un indicateur en haut de l'ecran affiche l'etat :
+    en ligne / hors ligne / synchronisation / modifications
+    en attente / synchronise / erreur.
+
+PHASES (nouvelle vue "Phases")
+  - Creez des etapes independantes des listes, ajoutez-y des
+    taches (menu ou quick-add de la carte), deplacez les taches
+    entre phases, reordonnez les phases avec les fleches.
+  - Chaque phase affiche sa progression (x/y, pourcentage et
+    barre), recalculee automatiquement - y compris hors ligne.
+  - Supprimer une phase conserve ses taches (elles passent
+    "sans phase").
+
+SYNCHRONISATION AUTOMATIQUE MULTI-APPAREILS
+  - Au demarrage, au retour du reseau, au retour sur l'app et
+    regulierement sinon.
+  - Aucun doublon (mutations identifiees), conflits resolus au
+    plus recent, notification en cas de conflit.
+  - A la deconnexion, l'app vous previent s'il reste des
+    modifications en attente avant d'effacer les donnees locales.

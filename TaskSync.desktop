@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=TaskSync
+Comment=Gestion de taches synchronisee entre vos appareils
+# IMPORTANT : remplacez le chemin ci-dessous par VOTRE
+# dossier TaskSync, par exemple /home/marie/Applications/TaskSync
+Exec=bash /home/VOTRE_NOM/TaskSync/demarrer.sh
+Icon=preferences-system-time
+Terminal=true
+Categories=Office;ProjectManagement;
